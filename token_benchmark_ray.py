@@ -24,7 +24,7 @@ from llmperf.utils import (
 )
 from tqdm import tqdm
 
-from transformers import LlamaTokenizerFast
+from transformers import LlamaTokenizerFast, AutoTokenizer
 
 def get_token_throughput_latencies(
     model: str,
@@ -60,9 +60,11 @@ def get_token_throughput_latencies(
     """
     random.seed(11111)
 
-    tokenizer = LlamaTokenizerFast.from_pretrained(
-        "hf-internal-testing/llama-tokenizer"
-    )
+    # tokenizer = LlamaTokenizerFast.from_pretrained(
+    #     "hf-internal-testing/llama-tokenizer"
+    # )
+    tokenizer = AutoTokenizer.from_pretrained(
+        "/home/uburst/ylm/models/Qwen/Qwen3-4B")
     get_token_length = lambda text: len(tokenizer.encode(text))
     
     if not additional_sampling_params:
