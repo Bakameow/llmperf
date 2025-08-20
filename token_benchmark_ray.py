@@ -24,10 +24,11 @@ from llmperf.utils import (
 )
 from tqdm import tqdm
 
-from transformers import LlamaTokenizerFast, AutoTokenizer
+from transformers import AutoTokenizer
 
 def get_token_throughput_latencies(
     model: str,
+    tokenizer: str,
     mean_input_tokens: int,
     stddev_input_tokens: int,
     mean_output_tokens: int,
@@ -60,11 +61,7 @@ def get_token_throughput_latencies(
     """
     random.seed(11111)
 
-    # tokenizer = LlamaTokenizerFast.from_pretrained(
-    #     "hf-internal-testing/llama-tokenizer"
-    # )
-    tokenizer = AutoTokenizer.from_pretrained(
-        "/home/uburst/ylm/models/Qwen/Qwen3-4B")
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer)
     get_token_length = lambda text: len(tokenizer.encode(text))
     
     if not additional_sampling_params:
@@ -284,6 +281,7 @@ def metrics_summary(
 def run_token_benchmark(
     llm_api: str,
     model: str,
+    tokenizer: str,
     test_timeout_s: int,
     max_num_completed_requests: int,
     num_concurrent_requests: int,
@@ -299,6 +297,7 @@ def run_token_benchmark(
     Args:
         llm_api: The name of the llm api to use.
         model: The name of the model to query.
+        tokenizer: The tokenizer to use for the benchmark.
         max_num_completed_requests: The number of requests to complete before finishing the test.
         test_timeout_s: The amount of time to run the test for before reporting results.
         num_concurrent_requests: The number of concurrent requests to make. Increase
@@ -320,6 +319,7 @@ def run_token_benchmark(
 
     summary, individual_responses = get_token_throughput_latencies(
         model=model,
+        tokenizer=tokenizer,
         llm_api=llm_api,
         test_timeout_s=test_timeout_s,
         max_num_completed_requests=max_num_completed_requests,
@@ -456,6 +456,15 @@ args.add_argument(
     ),
 )
 args.add_argument(
+    "--tokenizer",
+    type=str,
+    default="hf-internal-testing/llama-tokenizer",
+    help=(
+        "The tokenizer to use for the benchmark. "
+        " (default: %(default)s)"
+    ),
+)
+args.add_argument(
     "--metadata",
     type=str,
     default="",
@@ -480,6 +489,7 @@ if __name__ == "__main__":
     run_token_benchmark(
         llm_api=args.llm_api,
         model=args.model,
+        tokenizer=args.tokenizer,
         test_timeout_s=args.timeout,
         max_num_completed_requests=args.max_num_completed_requests,
         mean_input_tokens=args.mean_input_tokens,
